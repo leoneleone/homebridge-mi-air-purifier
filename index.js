@@ -60,6 +60,14 @@ function MiAirPurifier(log, config) {
 		.getCharacteristic(Characteristic.RotationSpeed)
 		.on('get', this.getRotationSpeed.bind(this))
 		.on('set', this.setRotationSpeed.bind(this));
+	
+	// Register the service
+	this.service = new Service.LightBulb(this.name);
+
+	this.service
+		.getCharacteristic(Characteristic.On)
+		.on('get', this.getLED.bind(this))
+		.on('set', this.setLED.bind(this));
 
 	// Service information
 	this.serviceInfo = new Service.AccessoryInformation();
@@ -222,6 +230,25 @@ MiAirPurifier.prototype = {
 				break;
 			}
 		}
+	},
+
+	getLED: function(callback) {
+		this.device.call('get_prop', ['led'])
+			.then(result => {
+				callback(null, result[0] === 'on' ? true : false);
+			})
+			.catch(err => {
+				callback(err);
+			});
+	},
+
+	setLED: function(state, callback) {
+		this.device.call('set_led', [(state) ? 'on' : 'off'])
+			.then(result => {
+				(result[0] === 'ok') ? callback() : callback(new Error(result[0]));
+			}).catch(err => {
+				callback(err);
+			});
 	},
 
 	getAirQuality: function(callback) {
