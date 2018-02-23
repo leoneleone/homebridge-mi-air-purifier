@@ -281,7 +281,7 @@ MiAirPurifier.prototype = {
 	},
 	
 	getFilterLife: function(callback) {
-		that.device.call('get_prop', ['filter1_life'])
+		this.device.call('get_prop', ['filter1_life'])
 			.then(result => {
 				callback(null, result[0]);
 			})
