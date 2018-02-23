@@ -34,7 +34,7 @@ function MiAirPurifier(log, config) {
 		[0, 'idle'], [60, 'auto'], [80, 'silent'], [100, 'favorite']
 	];
 
-	// Register the service
+	// Register the Purifier service
 	this.service = new Service.AirPurifier(this.name);
 
 	this.service
@@ -61,14 +61,25 @@ function MiAirPurifier(log, config) {
 		.on('get', this.getRotationSpeed.bind(this))
 		.on('set', this.setRotationSpeed.bind(this));
 	
-	// Register the service
-	this.service = new Service.LightBulb(this.name);
+	// Register the Lightbulb service (LED / Display)
+	this.service = new Service.LightBulb(this.name + "Display");
 
 	this.service
 		.getCharacteristic(Characteristic.On)
 		.on('get', this.getLED.bind(this))
 		.on('set', this.setLED.bind(this));
+	
+	// Register the Filer Maitenance service
+	this.service = new Service.FilterMaintenance(this.name);
 
+	this.service
+		.getCharacteristic(Characteristic.FilterChangeIndication)
+		.on('get', this.getFilterChange.bind(this));
+	
+	this.service
+		.getCharacteristic(Characteristic.FilterLifeLevel)
+		.on('get', this.getFilterLife.bind(this));
+	
 	// Service information
 	this.serviceInfo = new Service.AccessoryInformation();
 
@@ -88,12 +99,9 @@ function MiAirPurifier(log, config) {
 			.on('get', this.getAirQuality.bind(this));
 
 		this.airQualitySensorService
-			.getCharacteristic(Characteristic.AirParticulateDensity)
+			.addCharacteristic(Characteristic.PM2_5Density)
 			.on('get', this.getPM25.bind(this));
-
-		this.airQualitySensorService
-			.setCharacteristic(Characteristic.AirParticulateSize, '2.5um');
-
+		
 		this.services.push(this.airQualitySensorService);
 	}
 
@@ -132,7 +140,8 @@ MiAirPurifier.prototype = {
 		this.device.call('get_prop', ['mode'])
 			.then(result => {
 				callback(null, (result[0] === 'idle') ? Characteristic.Active.INACTIVE: Characteristic.Active.ACTIVE);
-            }).catch(err => {
+			})
+			.catch(err => {
 				callback(err);
 			});
 	},
@@ -151,7 +160,8 @@ MiAirPurifier.prototype = {
 		this.device.call('get_prop', ['mode'])
 			.then(result => {
 				callback(null, (result[0] === 'idle') ? Characteristic.CurrentAirPurifierState.INACTIVE : Characteristic.CurrentAirPurifierState.PURIFYING_AIR);
-			}).catch(err => {
+			})
+			.catch(err => {
 				callback(err);
 			});
 	},
@@ -160,7 +170,8 @@ MiAirPurifier.prototype = {
 		this.device.call('get_prop', ['mode'])
 			.then(result => {
 				callback(null, (result[0] === 'favorite') ? Characteristic.TargetAirPurifierState.MANUAL : Characteristic.TargetAirPurifierState.AUTO);
-			}).catch(err => {
+			})
+			.catch(err => {
 				callback(err);
 			});
 	},
@@ -169,7 +180,7 @@ MiAirPurifier.prototype = {
 		this.device.call('set_mode', [(state) ? 'auto' : 'favorite'])
 			.then(result => {
 				(result[0] === 'ok') ? callback() : callback(new Error(result[0]));
-            })
+			})
 			.catch(err => {
 				callback(err);
 			});
@@ -189,7 +200,8 @@ MiAirPurifier.prototype = {
 		this.device.call('set_child_lock', [(state) ? 'on' : 'off'])
 			.then(result => {
 				(result[0] === 'ok') ? callback() : callback(new Error(result[0]));
-			}).catch(err => {
+			})
+			.catch(err => {
 				callback(err);
 			});
 	},
@@ -198,7 +210,8 @@ MiAirPurifier.prototype = {
 		this.device.call('get_prop', ['humidity'])
 			.then(result => {
 				callback(null, result[0]);
-            }).catch(err => {
+			})
+			.catch(err => {
 				callback(err);
 			});
 	},
@@ -212,7 +225,8 @@ MiAirPurifier.prototype = {
 						return;
 					}
 				}
-			}).catch(err => {
+			})
+			.catch(err => {
 				callback(err);
 			});
 	},
@@ -246,7 +260,28 @@ MiAirPurifier.prototype = {
 		this.device.call('set_led', [(state) ? 'on' : 'off'])
 			.then(result => {
 				(result[0] === 'ok') ? callback() : callback(new Error(result[0]));
-			}).catch(err => {
+			})
+			.catch(err => {
+				callback(err);
+			});
+	},
+	
+	getFilterChange: function(callback) {
+		this.device.call("get_prop", ["filter1_life"])
+			.then(result => {
+				callback(null, result[0] < 5 ? Characteristic.FilterChangeIndication.CHANGE_FILTER : Characteristic.FilterChangeIndication.FILTER_OK);
+			})
+			.catch(function(err) {
+				callback(err);
+			});		
+	},
+	
+	getFilterLife: function(callback) {
+		that.device.call("get_prop", ["filter1_life"])
+			.then(result => {
+				callback(null, result[0]);
+			})
+			.catch(function(err) {
 				callback(err);
 			});
 	},
