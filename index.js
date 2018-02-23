@@ -271,21 +271,21 @@ MiAirPurifier.prototype = {
 	},
 	
 	getFilterChange: function(callback) {
-		this.device.call("get_prop", ["filter1_life"])
+		this.device.call('get_prop', ['filter1_life'])
 			.then(result => {
 				callback(null, result[0] < 5 ? Characteristic.FilterChangeIndication.CHANGE_FILTER : Characteristic.FilterChangeIndication.FILTER_OK);
 			})
-			.catch(function(err) {
+			.catch(err => {
 				callback(err);
 			});		
 	},
 	
 	getFilterLife: function(callback) {
-		that.device.call("get_prop", ["filter1_life"])
+		that.device.call('get_prop', ['filter1_life'])
 			.then(result => {
 				callback(null, result[0]);
 			})
-			.catch(function(err) {
+			.catch(err => {
 				callback(err);
 			});
 	},
