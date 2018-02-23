@@ -61,25 +61,6 @@ function MiAirPurifier(log, config) {
 		.on('get', this.getRotationSpeed.bind(this))
 		.on('set', this.setRotationSpeed.bind(this));
 	
-	// Register the Lightbulb service (LED / Display)
-	this.service = new Service.LightBulb(this.name + "Display");
-
-	this.service
-		.getCharacteristic(Characteristic.On)
-		.on('get', this.getLED.bind(this))
-		.on('set', this.setLED.bind(this));
-	
-	// Register the Filer Maitenance service
-	this.service = new Service.FilterMaintenance(this.name);
-
-	this.service
-		.getCharacteristic(Characteristic.FilterChangeIndication)
-		.on('get', this.getFilterChange.bind(this));
-	
-	this.service
-		.getCharacteristic(Characteristic.FilterLifeLevel)
-		.on('get', this.getFilterLife.bind(this));
-	
 	// Service information
 	this.serviceInfo = new Service.AccessoryInformation();
 
@@ -87,9 +68,32 @@ function MiAirPurifier(log, config) {
 		.setCharacteristic(Characteristic.Manufacturer, 'Xiaomi')
 		.setCharacteristic(Characteristic.Model, 'Air Purifier')
 		.setCharacteristic(Characteristic.SerialNumber, '0799-E5C0-57A641308C0D');
-
+	
 	this.services.push(this.service);
 	this.services.push(this.serviceInfo);
+	
+	// Register the Lightbulb service (LED / Display)
+	this.lightBulbService = new Service.LightBulb(this.name + "Display");
+
+	this.lightBulbService
+		.getCharacteristic(Characteristic.On)
+		.on('get', this.getLED.bind(this))
+		.on('set', this.setLED.bind(this));
+	
+	this.services.push(this.lightBulbService);
+	
+	// Register the Filer Maitenance service
+	this.filterMaintenanceService = new Service.FilterMaintenance(this.name + "Filter");
+
+	this.filterMaintenanceService
+		.getCharacteristic(Characteristic.FilterChangeIndication)
+		.on('get', this.getFilterChange.bind(this));
+	
+	this.filterMaintenanceService
+		.getCharacteristic(Characteristic.FilterLifeLevel)
+		.on('get', this.getFilterLife.bind(this));
+	
+	this.services.push(this.filterMaintenanceService);
 
 	if(this.showAirQuality){
 		this.airQualitySensorService = new Service.AirQualitySensor(this.nameAirQuality);
