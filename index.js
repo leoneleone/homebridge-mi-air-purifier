@@ -90,7 +90,7 @@ function MiAirPurifier(log, config) {
 		.on('get', this.getFilterChange.bind(this));
 	
 	this.filterMaintenanceService
-		.getCharacteristic(Characteristic.FilterLifeLevel)
+		.addCharacteristic(Characteristic.FilterLifeLevel)
 		.on('get', this.getFilterLife.bind(this));
 	
 	this.services.push(this.filterMaintenanceService);
@@ -271,7 +271,7 @@ MiAirPurifier.prototype = {
 	},
 	
 	getFilterChange: function(callback) {
-		this.device.call('get_prop', ['filter1_life'])
+		this.device.call('get_prop', ['filterL1_life'])
 			.then(result => {
 				callback(null, result[0] < 5 ? Characteristic.FilterChangeIndication.CHANGE_FILTER : Characteristic.FilterChangeIndication.FILTER_OK);
 			})
