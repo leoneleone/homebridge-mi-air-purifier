@@ -18,6 +18,7 @@ function MiAirPurifier(log, config) {
     this.showTemperature = config.showTemperature || false;
     this.showHumidity = config.showHumidity || false;
     this.showLED = config.showLED || false;
+    this.showFilter = config.showFilter || false;
 
     this.nameAirQuality = config.nameAirQuality || 'Air Quality';
     this.nameTemperature = config.nameTemperature || 'Temperature';
@@ -25,6 +26,7 @@ function MiAirPurifier(log, config) {
 
     this.device = null;
     this.mode = null;
+    //this.filter = null;
     this.temperature = null;
     this.humidity = null;
     this.aqi = null;
@@ -36,6 +38,8 @@ function MiAirPurifier(log, config) {
         [100, Characteristic.AirQuality.FAIR],
         [50, Characteristic.AirQuality.GOOD],
         [0, Characteristic.AirQuality.EXCELLENT],
+    
+    
     ];
 
     this.services = [];
@@ -83,6 +87,20 @@ function MiAirPurifier(log, config) {
 
     this.services.push(this.service);
     this.services.push(this.serviceInfo);
+
+    if (this.showFilter) {
+        this.filterService = new Service.FilterMaintenance(this.nameFilter);
+
+        this.filterService
+            .getCharacteristic(Characteristic.FilterChangeIndication)
+            .on('get', this.getfilterChange.bind(this));
+
+        this.filterService
+            .getCharacteristic(Characteristic.FilterLifeLevel)
+            .on('get', this.getfilterLife.bind(this));
+
+        this.services.push(this.filterService);
+    }
 
     if (this.showAirQuality) {
         this.airQualitySensorService = new Service.AirQualitySensor(this.nameAirQuality);
@@ -171,6 +189,7 @@ MiAirPurifier.prototype = {
                             that.updateHumidity(state.relativeHumidity);
                             that.updateAirQuality(state['pm2.5']);
                             that.updateLED(state.led);
+                            that.updatefilter(state.filter.value);
 
                             // State change events
                             device.on('stateChanged', data => {
@@ -196,6 +215,10 @@ MiAirPurifier.prototype = {
 
                                 if (state['key'] == 'led') {
                                     that.updateLED(state['value']);
+                                }
+                                
+                                if (state['key'] == 'filterL1_life') {
+                                    that.updatefilter(state['value']);
                                 }
                             });
                         })
