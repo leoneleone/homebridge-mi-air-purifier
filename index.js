@@ -193,7 +193,7 @@ MiAirPurifier.prototype = {
 	getLockPhysicalControls: function(callback) {
 		this.device.call('get_prop', ['child_lock'])
 			.then(result => {
-				callback(null, result[0] === 'on' ? Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED : Characteristic.LockPhysicalControls.CONTROL_LOCK_DISABLED);
+				callback(null, result[0] === 'on' ? Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED : Characteristic.LockPhysicalControls.CONTROL_LOCK_DISABLED);ED);
 			})
 			.catch(err => {
 				callback(err);
@@ -266,7 +266,7 @@ MiAirPurifier.prototype = {
         getFilterChange: function(callback) {
                 this.device.call('get_prop', ['filter1_life'])
                         .then(result => {
-                                callback(null, result[0] < 5 ? Characteristic.FilterChangeIndication.CHANGE_FILTER : Characteristic$
+                                callback(null, result[0] < 5 ? Characteristic.FilterChangeIndication.CHANGE_FILTER : Characteristic.FilterChangeIndication.FILTER_OK);
             }).catch(err => {
                                 callback(err);
                         });
