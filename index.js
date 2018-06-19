@@ -396,8 +396,8 @@ MiAirPurifier.prototype = {
         this.led = state;
         this.lightBulbService.getCharacteristic(Characteristic.On).updateValue(state);
     },
-	
-	getFilterLife: function(callback) {
+    
+    getFilterLife: function(callback) {
         if (!this.device) {
             callback(new Error('No Air Purifier is discovered.'));
             return;
